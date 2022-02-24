@@ -1,31 +1,21 @@
 var apiURL =
   "https://randomuser.me/api/?inc=gender,first,name,nat,location,registered,picture&noinfo";
+var result;
 
 main();
-
-function generateCheckBox() {
-  var checkBox = document.createElement("input");
-  checkBox.type = "checkbox";
-  checkBox.className = "adress-checkbox";
-  checkBox.checked = true;
-  document.getElementById("personGenerator").appendChild(checkBox);
-}
-
-function generateButton() {
-  var button = document.createElement("button");
-  button.addEventListener("click", generatePerson);
-  button.textContent = "Generuj osobę";
-  button.setAttribute("class", "generate-Button");
-  document.getElementById("personGenerator").appendChild(button);
-}
 
 function main() {
   generateButton();
 }
 
 async function generatePerson() {
-  var result = await getData();
-  createPerson(result);
+  if (result == null) {
+    result = await getData();
+    createPerson(result);
+  } else {
+    result = await getData();
+    updatePerson(result);
+  }
 }
 
 function getData() {
@@ -36,7 +26,6 @@ function getData() {
         let createdPerson;
         let person = data.results;
         person.map(function (p) {
-          console.log(p);
           createdPerson = {
             FirstName: p.name.first,
             LastName: p.name.last,
@@ -44,7 +33,7 @@ function getData() {
             Nationality: p.nat,
             LocationAdress: {
               city: p.location.city,
-              strate: p.location.state,
+              state: p.location.state,
               postcode: p.location.postcode,
               street: p.location.street.name,
               houseNumber: p.location.street.number,
@@ -62,7 +51,52 @@ function getData() {
 }
 
 function createPerson(createdPerson) {
-  console.log(createdPerson);
+  addField("firstName", createdPerson.FirstName);
+  addField("lastName", createdPerson.LastName);
+  addField(
+    "address",
+    `${createdPerson.LocationAdress.city}<br>${createdPerson.LocationAdress.state}<br>${createdPerson.LocationAdress.postcode}<br>${createdPerson.LocationAdress.street}<br>${createdPerson.LocationAdress.houseNumber}`
+  );
+  addField("nationality", createdPerson.Nationality);
+  addField("registeredDate", createdPerson.RegisterDate);
 }
 
-function addField(fieldName, param) {}
+function updatePerson(createdPerson) {
+  updateField("firstName", createdPerson.FirstName);
+  updateField("lastName", createdPerson.LastName);
+  updateField(
+    "address",
+    `${createdPerson.LocationAdress.city}<br>${createdPerson.LocationAdress.state}<br>${createdPerson.LocationAdress.postcode}<br>${createdPerson.LocationAdress.street}<br>${createdPerson.LocationAdress.houseNumber}`
+  );
+  updateField("nationality", createdPerson.Nationality);
+  updateField("registeredDate", createdPerson.RegisterDate);
+}
+
+function addImage() {}
+
+function addField(fieldName, param) {
+  var field = document.createElement("div");
+  field.className = fieldName;
+  field.innerHTML = param;
+  document.getElementById("personGenerator").appendChild(field);
+}
+
+function updateField(fieldName, param) {
+  field = document.getElementsByClassName(fieldName)[0].innerHTML = param;
+}
+
+function generateCheckBox() {
+  var checkBox = document.createElement("input");
+  checkBox.type = "checkbox";
+  checkBox.className = "adress-checkbox";
+  checkBox.checked = true;
+  document.getElementById("personGenerator").appendChild(checkBox);
+}
+
+function generateButton() {
+  var button = document.createElement("button");
+  button.addEventListener("click", generatePerson);
+  button.textContent = "Generuj osobę";
+  button.setAttribute("class", "generate-Button");
+  document.getElementById("personGenerator").appendChild(button);
+}
