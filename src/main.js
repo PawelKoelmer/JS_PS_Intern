@@ -59,6 +59,7 @@ function createPerson(createdPerson) {
   );
   addField("nationality", createdPerson.Nationality);
   addField("registeredDate", createdPerson.RegisterDate);
+  generateCheckBox();
 }
 
 function updatePerson(createdPerson) {
@@ -70,6 +71,7 @@ function updatePerson(createdPerson) {
   );
   updateField("nationality", createdPerson.Nationality);
   updateField("registeredDate", createdPerson.RegisterDate);
+  generateCheckBox()
 }
 
 function addImage() {}
@@ -78,7 +80,7 @@ function addField(fieldName, param) {
   var field = document.createElement("div");
   field.className = fieldName;
   field.innerHTML = param;
-  document.getElementById("personGenerator").appendChild(field);
+  document.getElementsByClassName("person-Generator")[0].appendChild(field);
 }
 
 function updateField(fieldName, param) {
@@ -89,8 +91,9 @@ function generateCheckBox() {
   var checkBox = document.createElement("input");
   checkBox.type = "checkbox";
   checkBox.className = "adress-checkbox";
+  checkBox.onclick = checkCheckbox;
   checkBox.checked = true;
-  document.getElementById("personGenerator").appendChild(checkBox);
+  document.getElementsByClassName("person-Generator")[0].appendChild(checkBox);
 }
 
 function generateButton() {
@@ -98,5 +101,12 @@ function generateButton() {
   button.addEventListener("click", generatePerson);
   button.textContent = "Generuj osobę";
   button.setAttribute("class", "generate-Button");
-  document.getElementById("personGenerator").appendChild(button);
+  document.getElementsByClassName("person-Generator")[0].appendChild(button);
+}
+
+function checkCheckbox(){
+  if(document.getElementsByClassName("adress-checkbox")[0].checked){
+    document.getElementsByClassName("address")[0].style.display = "block";
+  }else
+    document.getElementsByClassName("address")[0].style.display = "none";
 }
