@@ -1,11 +1,16 @@
 var apiURL =
   "https://randomuser.me/api/?inc=gender,first,name,nat,location,registered,picture&noinfo";
 var result;
+var userTable = new Array();
 
 main();
 
 function main() {
+  if (window.localStorage.getItem("userTable")) {
+    userTable = JSON.parse(window.localStorage.getItem("userTable"));
+  }
   generateButton();
+  generateLinkToTable();
 }
 
 async function generatePerson() {
@@ -16,6 +21,7 @@ async function generatePerson() {
     result = await getData();
     updatePerson(result);
   }
+  window.localStorage.setItem("userTable", JSON.stringify(userTable));
 }
 
 function getData() {
@@ -45,6 +51,7 @@ function getData() {
             },
           };
         });
+        userTable.push(createdPerson);
         resolve(createdPerson);
       });
   });
@@ -71,7 +78,6 @@ function updatePerson(createdPerson) {
   );
   updateField("nationality", createdPerson.Nationality);
   updateField("registeredDate", createdPerson.RegisterDate);
-  generateCheckBox()
 }
 
 function addImage() {}
@@ -104,9 +110,22 @@ function generateButton() {
   document.getElementsByClassName("person-Generator")[0].appendChild(button);
 }
 
-function checkCheckbox(){
-  if(document.getElementsByClassName("adress-checkbox")[0].checked){
+function checkCheckbox() {
+  if (document.getElementsByClassName("adress-checkbox")[0].checked) {
     document.getElementsByClassName("address")[0].style.display = "block";
-  }else
-    document.getElementsByClassName("address")[0].style.display = "none";
+  } else document.getElementsByClassName("address")[0].style.display = "none";
+}
+
+function generateLinkToTable() {
+  var link = document.createElement("a");
+  var linkText = document.createTextNode("Tabela użytkowników");
+  link.appendChild(linkText);
+  link.onclick = sendTableToSesion();
+  link.title = "Tabela użytkowników";
+  link.href = "wyswietlanie.html";
+  document.getElementsByClassName("person-Generator")[0].appendChild(link);
+}
+
+function sendTableToSesion(){
+  window.sessionStorage.setItem("userTable", JSON.stringify(userTable));
 }
