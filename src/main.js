@@ -21,7 +21,6 @@ async function generatePerson() {
     result = await getData();
     updatePerson(result);
   }
-  window.localStorage.setItem("userTable", JSON.stringify(userTable));
 }
 
 function getData() {
@@ -32,12 +31,14 @@ function getData() {
         let createdPerson;
         let person = data.results;
         person.map(function (p) {
+          console.log(p);
           createdPerson = {
             FirstName: p.name.first,
             LastName: p.name.last,
-            RegisterDate: p.registered.date,
+            RegisterDate: Date.parse(p.registered.date),
             Nationality: p.nat,
             LocationAdress: {
+              country: p.location.country,
               city: p.location.city,
               state: p.location.state,
               postcode: p.location.postcode,
@@ -52,6 +53,7 @@ function getData() {
           };
         });
         userTable.push(createdPerson);
+        window.localStorage.setItem("userTable", JSON.stringify(userTable));
         resolve(createdPerson);
       });
   });
@@ -62,10 +64,15 @@ function createPerson(createdPerson) {
   addField("lastName", createdPerson.LastName);
   addField(
     "address",
-    `${createdPerson.LocationAdress.city}<br>${createdPerson.LocationAdress.state}<br>${createdPerson.LocationAdress.postcode}<br>${createdPerson.LocationAdress.street}<br>${createdPerson.LocationAdress.houseNumber}`
+    `${createdPerson.LocationAdress.country}<br>
+    ${createdPerson.LocationAdress.city}<br>
+    ${createdPerson.LocationAdress.state}<br>
+    ${createdPerson.LocationAdress.postcode}<br>
+    ${createdPerson.LocationAdress.street}<br>
+    ${createdPerson.LocationAdress.houseNumber}`
   );
   addField("nationality", createdPerson.Nationality);
-  addField("registeredDate", createdPerson.RegisterDate);
+  addField("registeredDate", timestampToDate(createdPerson.RegisterDate));
   generateCheckBox();
 }
 
@@ -74,10 +81,15 @@ function updatePerson(createdPerson) {
   updateField("lastName", createdPerson.LastName);
   updateField(
     "address",
-    `${createdPerson.LocationAdress.city}<br>${createdPerson.LocationAdress.state}<br>${createdPerson.LocationAdress.postcode}<br>${createdPerson.LocationAdress.street}<br>${createdPerson.LocationAdress.houseNumber}`
+    `${createdPerson.LocationAdress.country}<br>
+    ${createdPerson.LocationAdress.city}<br>
+    ${createdPerson.LocationAdress.state}<br>
+    ${createdPerson.LocationAdress.postcode}<br>
+    ${createdPerson.LocationAdress.street}<br>
+    ${createdPerson.LocationAdress.houseNumber}`
   );
   updateField("nationality", createdPerson.Nationality);
-  updateField("registeredDate", createdPerson.RegisterDate);
+  updateField("registeredDate", timestampToDate(createdPerson.RegisterDate));
 }
 
 function addImage() {}
@@ -120,12 +132,37 @@ function generateLinkToTable() {
   var link = document.createElement("a");
   var linkText = document.createTextNode("Tabela użytkowników");
   link.appendChild(linkText);
-  link.onclick = sendTableToSesion();
+  link.onclick = openPage;
   link.title = "Tabela użytkowników";
   link.href = "wyswietlanie.html";
   document.getElementsByClassName("person-Generator")[0].appendChild(link);
 }
 
-function sendTableToSesion(){
-  window.sessionStorage.setItem("userTable", JSON.stringify(userTable));
+async function openPage() {
+  await sendTableToSesion();
+}
+
+function sendTableToSesion() {
+  var tableToSession = new Array();
+  return new Promise(function (resolve, reject) {
+    if (userTable.length > 10) {
+      tableToSession = userTable.slice(userTable.length - 10);
+    } else {
+      tableToSession = userTable;
+    }
+    console.log(tableToSession);
+    resolve(
+      window.sessionStorage.setItem("userTable", JSON.stringify(tableToSession))
+    );
+  });
+}
+
+function timestampToDate(param){
+  var date = new Date(param);
+    return date.getDate()+
+    "/"+(date.getMonth()+1)+
+    "/"+date.getFullYear()+
+    " "+date.getHours()+
+    ":"+date.getMinutes()+
+    ":"+date.getSeconds();
 }
