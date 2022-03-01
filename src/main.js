@@ -1,125 +1,73 @@
-var apiURL =
+const API_URL =
   "https://randomuser.me/api/?inc=gender,first,name,nat,location,registered,picture&noinfo";
-var result;
-var userTable = new Array();
+const localStorageKeys = {
+  USERS_TABLE: "usersTable",
+};
 
 main();
 
 function main() {
-  if (window.localStorage.getItem("userTable")) {
-    userTable = JSON.parse(window.localStorage.getItem("userTable"));
-  }
+  createPersonDiv();
+  createPersonDataBody();
   generateButton();
   generateLinkToTable();
+  generateCheckBox();
 }
 
 async function generatePerson() {
-  if (result == null) {
-    result = await getData();
-    createPerson(result);
-  } else {
-    result = await getData();
-    updatePerson(result);
+  try {
+    const person = await getData();
+    addCreatedPersonToList(person);
+    createPerson(person);
+  } catch (error) {
+    console.log(error);
   }
 }
 
 function getData() {
-  return new Promise(function (resolve, reject) {
-    fetch(apiURL)
-      .then((res) => res.json())
-      .then((data) => {
-        let createdPerson;
-        let person = data.results;
-        person.map(function (p) {
-          console.log(p);
-          createdPerson = {
-            FirstName: p.name.first,
-            LastName: p.name.last,
-            RegisterDate: Date.parse(p.registered.date),
-            Nationality: p.nat,
-            LocationAdress: {
-              country: p.location.country,
-              city: p.location.city,
-              state: p.location.state,
-              postcode: p.location.postcode,
-              street: p.location.street.name,
-              houseNumber: p.location.street.number,
-            },
-            Picture: {
-              large: p.picture.large,
-              medium: p.picture.medium,
-              thumbnail: p.picture.thumbnail,
-            },
-          };
-        });
-        userTable.push(createdPerson);
-        window.localStorage.setItem("userTable", JSON.stringify(userTable));
-        resolve(createdPerson);
-      });
-  });
+  return fetch(API_URL)
+    .then((res) => res.json())
+    .then((data) => {
+      const person = data.results[0];
+      const createdPerson = createPersonFromData(person);
+      return createdPerson;
+    });
 }
 
 function createPerson(createdPerson) {
-  addField("firstName", createdPerson.FirstName);
-  addField("lastName", createdPerson.LastName);
-  addField(
-    "address",
-    `${createdPerson.LocationAdress.country}<br>
-    ${createdPerson.LocationAdress.city}<br>
-    ${createdPerson.LocationAdress.state}<br>
-    ${createdPerson.LocationAdress.postcode}<br>
-    ${createdPerson.LocationAdress.street}<br>
-    ${createdPerson.LocationAdress.houseNumber}`
-  );
-  addField("nationality", createdPerson.Nationality);
-  addField("registeredDate", timestampToDate(createdPerson.RegisterDate));
-  generateCheckBox();
-}
-
-function updatePerson(createdPerson) {
-  updateField("firstName", createdPerson.FirstName);
-  updateField("lastName", createdPerson.LastName);
-  updateField(
-    "address",
-    `${createdPerson.LocationAdress.country}<br>
-    ${createdPerson.LocationAdress.city}<br>
-    ${createdPerson.LocationAdress.state}<br>
-    ${createdPerson.LocationAdress.postcode}<br>
-    ${createdPerson.LocationAdress.street}<br>
-    ${createdPerson.LocationAdress.houseNumber}`
-  );
-  updateField("nationality", createdPerson.Nationality);
-  updateField("registeredDate", timestampToDate(createdPerson.RegisterDate));
+  try {
+    document.querySelector(".person-data").remove();
+    createPersonDataBody();
+    addFieldsToPersonData(createdPerson);
+  } catch (error) {
+    addFieldsToPersonData(createdPerson);
+  }
 }
 
 function addImage() {}
 
 function addField(fieldName, param) {
-  var field = document.createElement("div");
+  let field = document.createElement("div");
   field.className = fieldName;
   field.innerHTML = param;
-  document.getElementsByClassName("person-Generator")[0].appendChild(field);
-}
-
-function updateField(fieldName, param) {
-  field = document.getElementsByClassName(fieldName)[0].innerHTML = param;
+  document.querySelector(".person-data").appendChild(field);
 }
 
 function generateCheckBox() {
-  var checkBox = document.createElement("input");
+  let checkBox = document.createElement("input");
   checkBox.type = "checkbox";
   checkBox.className = "adress-checkbox";
   checkBox.onclick = checkCheckbox;
   checkBox.checked = true;
-  document.getElementsByClassName("person-Generator")[0].appendChild(checkBox);
+  document.body.appendChild(checkBox);
 }
 
 function generateButton() {
-  var button = document.createElement("button");
+  let button = document.createElement("button");
   button.addEventListener("click", generatePerson);
-  button.textContent = "Generuj osobę";
-  button.setAttribute("class", "generate-Button");
-  document.getElementsByClassName("person-Generator")[0].appendChild(button);
+  button.textContent = "Generate User";
+  button.setAttribute("class", "generate-button");
+  document.body.appendChild(button);
 }
 
 function checkCheckbox() {
@@ -129,40 +77,123 @@ function checkCheckbox() {
 }
 
 function generateLinkToTable() {
-  var link = document.createElement("a");
-  var linkText = document.createTextNode("Tabela użytkowników");
+  let link = document.createElement("a");
+  let linkText = document.createTextNode("Tabela użytkowników");
   link.appendChild(linkText);
   link.onclick = openPage;
   link.title = "Tabela użytkowników";
-  link.href = "wyswietlanie.html";
-  document.getElementsByClassName("person-Generator")[0].appendChild(link);
+  link.href = "showRegisteredUsers.html";
+  document.body.appendChild(link);
 }
 
 async function openPage() {
-  await sendTableToSesion();
+  const tableTosession = await sendTableToSesion();
 }
 
 function sendTableToSesion() {
-  var tableToSession = new Array();
+  const registeredUsers = readUsers();
   return new Promise(function (resolve, reject) {
-    if (userTable.length > 10) {
-      tableToSession = userTable.slice(userTable.length - 10);
+    if (registeredUsers.length > 10) {
+      tableToSession = registeredUsers.slice(registeredUsers.length - 10);
+      addTableToSession(tableToSession);
     } else {
-      tableToSession = userTable;
+      tableToSession = registeredUsers;
+      addTableToSession(tableToSession);
     }
-    console.log(tableToSession);
-    resolve(
-      window.sessionStorage.setItem("userTable", JSON.stringify(tableToSession))
-    );
   });
 }
 
-function timestampToDate(param){
-  var date = new Date(param);
-    return date.getDate()+
-    "/"+(date.getMonth()+1)+
-    "/"+date.getFullYear()+
-    " "+date.getHours()+
-    ":"+date.getMinutes()+
-    ":"+date.getSeconds();
+function timestampToDate(timestamp) {
+  let date = new Date(timestamp);
+  return (
+    date.getDate() +
+    "/" +
+    (date.getMonth() + 1) +
+    "/" +
+    date.getFullYear() +
+    " " +
+    date.getHours() +
+    ":" +
+    date.getMinutes() +
+    ":" +
+    date.getSeconds()
+  );
+}
+
+function readUsers() {
+  return readLocalStorageByKey(localStorageKeys.USERS_TABLE);
+}
+
+function readLocalStorageByKey(key) {
+  try {
+    const users = localStorage.getItem(key);
+    return users ? JSON.parse(users) : [];
+  } catch (error) {
+    console.log("Failed to read users", error);
+  }
+}
+
+function addTableToSession(tableToSession) {
+  console.log(tableToSession);
+  sessionStorage.setItem(
+    localStorageKeys.USERS_TABLE,
+    JSON.stringify(tableToSession)
+  );
+}
+
+function addCreatedPersonToList(person) {
+  localStorage.setItem(
+    localStorageKeys.USERS_TABLE,
+    JSON.stringify([...readUsers(), person])
+  );
+}
+
+function createPersonFromData(person) {
+  return {
+    firstName: person.name.first,
+    lastName: person.name.last,
+    registerDate: Date.parse(person.registered.date),
+    nationality: person.nat,
+    locationAdress: {
+      country: person.location.country,
+      city: person.location.city,
+      state: person.location.state,
+      postcode: person.location.postcode,
+      street: person.location.street.name,
+      houseNumber: person.location.street.number,
+    },
+    picture: {
+      large: person.picture.large,
+      medium: person.picture.medium,
+      thumbnail: person.picture.thumbnail,
+    },
+  };
+}
+
+function createPersonDiv() {
+  const personFieldBody = document.createElement("div");
+  personFieldBody.className = "person-container";
+  document.body.appendChild(personFieldBody);
+}
+
+function createPersonDataBody() {
+  const personDataBody = document.createElement("div");
+  personDataBody.className = "person-data";
+  document.querySelector(".person-container").appendChild(personDataBody);
+}
+
+function addFieldsToPersonData(createdPerson) {
+  addField("firstName", createdPerson.firstName);
+  addField("lastName", createdPerson.lastName);
+  addField(
+    "address",
+    `${createdPerson.locationAdress.country}<br>
+    ${createdPerson.locationAdress.city}<br>
+    ${createdPerson.locationAdress.state}<br>
+    ${createdPerson.locationAdress.postcode}<br>
+    ${createdPerson.locationAdress.street}<br>
+    ${createdPerson.locationAdress.houseNumber}`
+  );
+  addField("nationality", createdPerson.nationality);
+  addField("registeredDate", timestampToDate(createdPerson.registerDate));
 }
