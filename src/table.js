@@ -5,11 +5,9 @@ const localStorageKeys = {
 
 const classNames = {
   USERS_TABLE: 'users-table',
+  HEADERS_ROW: 'headers-row',
+  DATA_ROW: 'data-row',
 };
-
-/*  generateHeaders(tableBody);
-  appendDataToTable(tableBody);
-  document.body.appendChild(tableBody); */
 
 showTable();
 
@@ -21,9 +19,7 @@ function showTable() {
   } catch (error) {
     console.log('Failed to obtain data from session');
   }
-  appendElementToBody(createTableContainer());
-  appendElement(createHeaders(),classNames.USERS_TABLE);
-  appendDataToTable()
+  createTable();
 }
 
 function createTableContainer() {
@@ -32,17 +28,26 @@ function createTableContainer() {
   return tableBody;
 }
 
-function appendDataToTable(tableBody) {
-  for (i = tableData.length - 1; i >= 0; i--) {
-    const tableRow = createRow();
-    tableRow.appendChild(createCell(tableData[i].firstName));
-    tableRow.appendChild(createCell(tableData[i].lastName));
-    tableRow.appendChild(createCell(tableData[i].locationAddress.country));
-    tableRow.appendChild(
-      createCell(timestampToDate(tableData[i].registerDate))
-    );
-    tableBody.appendChild(tableRow);
-  }
+function createTable(){
+  appendElementToBody(createTableContainer());
+  appendElement(createHeaders(),classNames.USERS_TABLE);
+  appendDataToTable();
+}
+
+function appendDataToTable() {
+  for(i = tableData.length - 1; i >= 0; i--){
+    getByClassName(classNames.USERS_TABLE).appendChild(createTableDataRow(tableData[i]));
+  };
+}
+
+function createTableDataRow(dataToRow){
+  const tableRow = createRow();
+  tableRow.className = classNames.DATA_ROW;
+  tableRow.appendChild(createCell(dataToRow.firstName));
+  tableRow.appendChild(createCell(dataToRow.lastName));
+  tableRow.appendChild(createCell(dataToRow.locationAddress.country));
+  tableRow.appendChild(createCell(timestampToDate(dataToRow.registerDate)));
+  return tableRow;
 }
 
 function createCell(textInCell) {
@@ -52,12 +57,15 @@ function createCell(textInCell) {
 }
 
 function createHeaderCellWithFunction(textInCell, param) {
-  const cell = document.createElement('td');
-  cell.addEventListener('click', function(){
-    sortTable(param);
+  const header = document.createElement('td');
+  header.value = false;
+  header.addEventListener('click', function(){
+    console.log(this.value);
+    this.value = sortTable(param,this.value);
+    console.log(this.value);
   });
-  cell.innerHTML = textInCell;
-  return cell;
+  header.innerHTML = textInCell;
+  return header;
 }
 
 function createRow(){
@@ -66,6 +74,7 @@ function createRow(){
 
 function createHeaders() {
   const headersRow = createRow();
+  headersRow.className = classNames.HEADERS_ROW;
   headersRow.appendChild(createCell('First Name'));
   headersRow.appendChild(createHeaderCellWithFunction('Last Name', 'lastName'));
   headersRow.appendChild(createCell('Country'));
@@ -73,27 +82,48 @@ function createHeaders() {
   return headersRow;
 }
 
-function sortTable(param) {
+function sortTable(param, isClicked) {
+  let flag = isClicked;
+  getAllElementsByClassName(classNames.DATA_ROW).forEach(function(elem){elem.remove()});
   if (param === 'lastName') {
-    tableData.sort(sortByLastName);
-    getByClassName(classNames.USERS_TABLE).remove();
-    createTableContainer();
+    if(isClicked){
+      tableData.sort(sortByLastNameAsc);
+      flag = false;
+    }else{
+      tableData.sort(sortByLastNameDesc);
+      flag =  true;
+    }
   }
   if (param === 'date') {
-    tableData.sort(sortByDate);
-    getByClassName(classNames.USERS_TABLE).remove();
-    createTableContainer();
+    if(isClicked){
+      tableData.sort(sortByDateAsc);
+      flag = false;
+    }else{
+      tableData.sort(sortByDateDesc);
+      flag = true;
+    }
   }
+  appendDataToTable();
+  return flag;
 }
+
+
+
 
 //HELPERS
 
-function sortByLastName(a, b) {
+function sortByLastNameAsc(a, b) {
   return b.lastName.localeCompare(a.lastName);
 }
+function sortByLastNameDesc(a, b) {
+  return a.lastName.localeCompare(b.lastName);
+}
 
-function sortByDate(a, b) {
+function sortByDateAsc(a, b) {
   return a.registerDate - b.registerDate;
+}
+function sortByDateDesc(a, b) {
+  return b.registerDate - a.registerDate;
 }
 
 function timestampToDate(param) {
@@ -124,3 +154,9 @@ function appendElement(elem,className){
 function appendElementToBody(elem){
   document.body.appendChild(elem);
 }
+
+function getAllElementsByClassName(param){
+  return document.querySelectorAll(`.${param}`);
+}
+
+
