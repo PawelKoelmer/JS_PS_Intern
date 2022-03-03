@@ -1,0 +1,23 @@
+{
+  "name": "js_ps_intern",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^8.10.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PawelKoelmer/JS_PS_Intern.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PawelKoelmer/JS_PS_Intern/issues"
+  },
+  "homepage": "https://github.com/PawelKoelmer/JS_PS_Intern#readme"
+}
