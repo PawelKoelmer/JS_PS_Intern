@@ -17,6 +17,7 @@ const classNames = {
 };
 
 const fieldsTable = ['firstName','lastName','locationAddress','nationality','registerDate'];
+const listLabels = ['First Name', 'Last Name', 'Address', 'Nationality', 'Registration Date'];
 
 //INITIALIZE
 
@@ -27,7 +28,7 @@ function main() {
   appendElement(createPersonDataBody(),classNames.CONTAINER);
   appendElement(generateButton(),classNames.CONTAINER);
   appendElementToBody(createLinkToTable());
-  appendElement(createIconsListContainer(),classNames.CONTAINER);
+  
 }
 
 //FETCH PERSON
@@ -37,6 +38,7 @@ async function generatePerson() {
     const person = await fetchPerson();
     addCreatedPersonToList(person);
     appendPersonToBody(person);
+    createTextList();
   } catch (error) {
     console.log(error);
   }
@@ -135,9 +137,7 @@ function createField(fieldClass, fieldText) {
   }
   else if(fieldClass === classNames.ADDRESS){
     let text = '';
-    for(const position in fieldText){
-      text += `${fieldText[position]}<br>`;
-    }
+    Object.values(fieldText).forEach((element) => {text += `${element}<br>`;});
     field.innerHTML = text;
   }
   else{
@@ -175,22 +175,29 @@ function generateButton() {
 function isAddressChecked() {
   if(getByClassName(classNames.CHECKBOX).checked){
     getByClassName(classNames.ADDRESS).style.display = 'block';
+    getByClassName(classNames.ICON_LIST).children[2].style.display = 'block';
   } else{
     getByClassName(classNames.ADDRESS).style.display = 'none';
+    getByClassName(classNames.ICON_LIST).children[2].style.display = 'none';
   } 
 }
 
-function createIconsListContainer() {
+function createTextList(){
+  appendElement(createTextListContainer(),classNames.CONTAINER);
+  listLabels.forEach((element) => {appendElement(createTextToList(element),classNames.ICON_LIST);});
+}
+
+function createTextListContainer() {
   const ul = document.createElement('ul');
   ul.className = 'icons-list';
   return ul;
 }
 
-/* function createIcon(fieldName) {
+function createTextToList(fieldName){
   const li = document.createElement('li');
   li.innerHTML = fieldName;
   return li;
-} */
+} 
 
 function createLinkToTable() {
   const link = document.createElement('a');
