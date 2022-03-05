@@ -1,4 +1,5 @@
-let tableData = [];
+let dataTable = [];
+
 const localStorageKeys = {
   DATA_TABLE: 'usersTable',
 };
@@ -9,20 +10,73 @@ const classNames = {
   DATA_ROW: 'data-row',
 };
 
-//FIXME: Zrob ze mna co z mainem
+
+
+
+//INITIALIZE
 
 initialize();
 
 function initialize() {
-  try {
-    tableData = JSON.parse(
-      sessionStorage.getItem(localStorageKeys.DATA_TABLE)
-    );
-  } catch (error) {
-    console.log('Failed to obtain data from session');
-  }
-  createTable();
+  renderTable();
 }
+
+
+
+
+//EVENT HANDLERS
+
+function sortTable(param, isClicked) {
+  let flag = isClicked;
+  getAllElementsByClassName(classNames.DATA_ROW).forEach(function(elem){elem.remove();});
+  if (param === 'lastName') {
+    if(isClicked){
+      dataTable.sort(sortByLastNameAsc);
+      flag = false;
+    }else{
+      dataTable.sort(sortByLastNameDesc);
+      flag =  true;
+    }
+  }
+  if (param === 'date') {
+    if(isClicked){
+      dataTable.sort(sortByDateAsc);
+      flag = false;
+    }else{
+      dataTable.sort(sortByDateDesc);
+      flag = true;
+    }
+  }
+  appendDataToTable();
+  return flag;
+}
+
+
+
+
+
+//RENDER
+
+function renderTable(){
+  const container = createTableContainer();
+  container.appendChild(createHeaders());
+  document.body.appendChild(container);
+  appendDataToTable(getDataFromLocalStorage());
+}
+
+function appendDataToTable() {
+  for(i = dataTable.length - 1; i >= 0; i--){
+    getByClassName(classNames.USERS_TABLE).appendChild(createTableDataRow(dataTable[i]));
+  }
+}
+
+
+
+
+
+
+
+//CREATE FUNCTIONS
 
 function createTableContainer() {
   const tableBody = document.createElement('table');
@@ -30,16 +84,30 @@ function createTableContainer() {
   return tableBody;
 }
 
-function createTable(){
-  appendElementToBody(createTableContainer());
-  appendElement(createHeaders(),classNames.USERS_TABLE);
-  appendDataToTable();
+function createRow(){
+  return document.createElement('tr');
 }
 
-function appendDataToTable() {
-  for(i = tableData.length - 1; i >= 0; i--){
-    getByClassName(classNames.USERS_TABLE).appendChild(createTableDataRow(tableData[i]));
-  }
+function createHeaderCell(textInCell) {
+  const cell = document.createElement('th');
+  cell.innerHTML = textInCell;
+  return cell;
+}
+
+function createCell(textInCell) {
+  const cell = document.createElement('td');
+  cell.innerHTML = textInCell;
+  return cell;
+}
+
+function createHeaders() {
+  const headersRow = createRow();
+  headersRow.className = classNames.HEADERS_ROW;
+  headersRow.appendChild(createHeaderCell('First Name'));
+  headersRow.appendChild(createHeaderCellWithFunction('Last Name', 'lastName'));
+  headersRow.appendChild(createHeaderCell('Country'));
+  headersRow.appendChild(createHeaderCellWithFunction('Register Date', 'date'));
+  return headersRow;
 }
 
 function createTableDataRow(dataToRow){
@@ -50,18 +118,6 @@ function createTableDataRow(dataToRow){
   tableRow.appendChild(createCell(dataToRow.locationAddress.country));
   tableRow.appendChild(createCell(timestampToFormattedDateString(dataToRow.registerDate)));
   return tableRow;
-}
-
-function createCell(textInCell) {
-  const cell = document.createElement('td');
-  cell.innerHTML = textInCell;
-  return cell;
-}
-
-function createHeaderCell(textInCell) {
-  const cell = document.createElement('th');
-  cell.innerHTML = textInCell;
-  return cell;
 }
 
 function createHeaderCellWithFunction(textInCell, param) {
@@ -76,48 +132,28 @@ function createHeaderCellWithFunction(textInCell, param) {
   return header;
 }
 
-function createRow(){
-  return document.createElement('tr');
-}
-
-function createHeaders() {
-  const headersRow = createRow();
-  headersRow.className = classNames.HEADERS_ROW;
-  headersRow.appendChild(createHeaderCell('First Name'));
-  headersRow.appendChild(createHeaderCellWithFunction('Last Name', 'lastName'));
-  headersRow.appendChild(createHeaderCell('Country'));
-  headersRow.appendChild(createHeaderCellWithFunction('Register Date', 'date'));
-  return headersRow;
-}
-
-function sortTable(param, isClicked) {
-  let flag = isClicked;
-  getAllElementsByClassName(classNames.DATA_ROW).forEach(function(elem){elem.remove();});
-  if (param === 'lastName') {
-    if(isClicked){
-      tableData.sort(sortByLastNameAsc);
-      flag = false;
-    }else{
-      tableData.sort(sortByLastNameDesc);
-      flag =  true;
-    }
-  }
-  if (param === 'date') {
-    if(isClicked){
-      tableData.sort(sortByDateAsc);
-      flag = false;
-    }else{
-      tableData.sort(sortByDateDesc);
-      flag = true;
-    }
-  }
-  appendDataToTable();
-  return flag;
-}
 
 
 
 //HELPERS
+
+function getDataFromLocalStorage(){
+  try {
+    dataTable = JSON.parse(
+      sessionStorage.getItem(localStorageKeys.DATA_TABLE)
+    );
+  } catch (error) {
+    console.log('Failed to obtain data from session');
+  }
+}
+
+function getSpeificDataFromLocalStorage(){
+  const users = getDataFromLocalStorage();
+  const latestUsersCount = 10;
+  return users.length > latestUsersCount
+    ? users.slice(users.length - latestUsersCount)
+    : users;
+}
 
 function sortByLastNameAsc(a, b) {
   return b.lastName.localeCompare(a.lastName);
@@ -147,14 +183,6 @@ function timestampToFormattedDateString(param) {
 
 function getByClassName(param) {
   return document.querySelector(`.${param}`);
-}
-
-function appendElement(elem,className){
-  getByClassName(className).appendChild(elem);
-}
-
-function appendElementToBody(elem){
-  document.body.appendChild(elem);
 }
 
 function getAllElementsByClassName(param){

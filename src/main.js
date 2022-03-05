@@ -4,11 +4,6 @@ const localStorageKeys = {
   USERS_TABLE: 'usersTable',
 };
 
-// TODO: remove
-const sessionStorageKeys = {
-  LATEST_USERS_TABLE: 'usersTable',
-};
-
 const classNames = {
   CONTAINER: 'container',
   CREATE_PERSON_BUTTON: 'generate-button',
@@ -21,13 +16,6 @@ const classNames = {
   CHECKBOX: 'address-checkbox',
   ICON_LIST: 'icons-list'
 };
-
-// const userSchema = {
-//   registerDate: {
-//     type: 'date',
-   
-//   }
-// };
 
 //INITIALIZE
 
@@ -57,7 +45,6 @@ async function handleCreateUserClick() {
   try {
     const user = await fetchUser();
     saveUserToLocalStorage(user);
-    saveLatestUsersToSessionStorage(getLatestUsers()); // TODO: remove
     renderUser(user);
   } catch (error) {
     console.log(error);
@@ -239,19 +226,6 @@ function createUserListPageLink() {
   return link;
 }
 
-// TODO: remove
-function saveLatestUsersToSessionStorage(users) {
-  try {
-    sessionStorage.setItem(
-      sessionStorageKeys.LATEST_USERS_TABLE,
-      JSON.stringify(users)
-    );
-  } catch (error) {
-    console.log('Cannot stringify data to session');
-  }
-}
-
-
 
 
 
@@ -259,15 +233,6 @@ function saveLatestUsersToSessionStorage(users) {
 
 function readUsers() {
   return readLocalStorageByKey(localStorageKeys.USERS_TABLE);
-}
-
-// TODO: move to table.js and remove redundant session storage
-function getLatestUsers() {
-  const users = readUsers();
-  const latestUsersCount = 10;
-  return users.length > latestUsersCount
-    ? users.slice(users.length - latestUsersCount)
-    : users;
 }
 
 function readLocalStorageByKey(key) {
@@ -279,20 +244,16 @@ function readLocalStorageByKey(key) {
   }
 }
 
-//FIXME: poprawić
 function timestampToFormattedDateString(timestamp) {
   const date = new Date(timestamp);
-  return (`${date.getDate()}/` +
-    (date.getMonth() + 1) +
-    '/' +
-    date.getFullYear() +
-    ' ' +
-    date.getHours() +
-    ':' +
-    date.getMinutes() +
-    ':' +
-    date.getSeconds()
-  );
+  const year = date.getFullYear();
+  let month = date.getMonth()+1;
+  let day = date.getDay()+1;
+
+  if(month < 10) month = '0'+month;
+  if(day < 10) day = '0' + day;
+   
+  return `${day}.${month}.${year}`;
 }
 
 function getByClassName(param) {

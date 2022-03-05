@@ -25,13 +25,6 @@
   background-color: #382cdb;
 }
 
-.icons-list li{
-  display: inline;
-  list-style-type: none;
-  padding-right: 20px;
-  float:left;
-}
-
 
 /* showRegisteredUsers */
 
@@ -42,9 +35,6 @@
   border-radius: 15px;
   width:50%;
   height:50%;
-  position: absolute;
-  top:25%;
-  left:25%;
   font-size: 32px;
  }
 
