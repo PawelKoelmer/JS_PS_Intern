@@ -9,9 +9,11 @@ const classNames = {
   DATA_ROW: 'data-row',
 };
 
-showTable();
+//FIXME: Zrob ze mna co z mainem
 
-function showTable() {
+initialize();
+
+function initialize() {
   try {
     tableData = JSON.parse(
       sessionStorage.getItem(localStorageKeys.DATA_TABLE)
@@ -37,7 +39,7 @@ function createTable(){
 function appendDataToTable() {
   for(i = tableData.length - 1; i >= 0; i--){
     getByClassName(classNames.USERS_TABLE).appendChild(createTableDataRow(tableData[i]));
-  };
+  }
 }
 
 function createTableDataRow(dataToRow){
@@ -46,7 +48,7 @@ function createTableDataRow(dataToRow){
   tableRow.appendChild(createCell(dataToRow.firstName));
   tableRow.appendChild(createCell(dataToRow.lastName));
   tableRow.appendChild(createCell(dataToRow.locationAddress.country));
-  tableRow.appendChild(createCell(timestampToDate(dataToRow.registerDate)));
+  tableRow.appendChild(createCell(timestampToFormattedDateString(dataToRow.registerDate)));
   return tableRow;
 }
 
@@ -56,8 +58,14 @@ function createCell(textInCell) {
   return cell;
 }
 
+function createHeaderCell(textInCell) {
+  const cell = document.createElement('th');
+  cell.innerHTML = textInCell;
+  return cell;
+}
+
 function createHeaderCellWithFunction(textInCell, param) {
-  const header = document.createElement('td');
+  const header = document.createElement('th');
   header.value = false;
   header.addEventListener('click', function(){
     console.log(this.value);
@@ -75,16 +83,16 @@ function createRow(){
 function createHeaders() {
   const headersRow = createRow();
   headersRow.className = classNames.HEADERS_ROW;
-  headersRow.appendChild(createCell('First Name'));
+  headersRow.appendChild(createHeaderCell('First Name'));
   headersRow.appendChild(createHeaderCellWithFunction('Last Name', 'lastName'));
-  headersRow.appendChild(createCell('Country'));
+  headersRow.appendChild(createHeaderCell('Country'));
   headersRow.appendChild(createHeaderCellWithFunction('Register Date', 'date'));
   return headersRow;
 }
 
 function sortTable(param, isClicked) {
   let flag = isClicked;
-  getAllElementsByClassName(classNames.DATA_ROW).forEach(function(elem){elem.remove()});
+  getAllElementsByClassName(classNames.DATA_ROW).forEach(function(elem){elem.remove();});
   if (param === 'lastName') {
     if(isClicked){
       tableData.sort(sortByLastNameAsc);
@@ -109,7 +117,6 @@ function sortTable(param, isClicked) {
 
 
 
-
 //HELPERS
 
 function sortByLastNameAsc(a, b) {
@@ -126,21 +133,16 @@ function sortByDateDesc(a, b) {
   return b.registerDate - a.registerDate;
 }
 
-function timestampToDate(param) {
+function timestampToFormattedDateString(param) {
   const date = new Date(param);
-  return (
-    date.getDate() +
-    '/' +
-    (date.getMonth() + 1) +
-    '/' +
-    date.getFullYear() +
-    ' ' +
-    date.getHours() +
-    ':' +
-    date.getMinutes() +
-    ':' +
-    date.getSeconds()
-  );
+  const year = date.getFullYear();
+  let month = date.getMonth()+1;
+  let day = date.getDay()+1;
+
+  if(month < 10) month = '0'+month;
+  if(day < 10) day = '0' + day;
+   
+  return `${day}.${month}.${year}`;
 }
 
 function getByClassName(param) {
