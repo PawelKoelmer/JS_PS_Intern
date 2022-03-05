@@ -9,9 +9,11 @@ const classNames = {
   DATA_ROW: 'data-row',
 };
 
-showTable();
+//FIXME: Zrob ze mna co z mainem
 
-function showTable() {
+initialize();
+
+function initialize() {
   try {
     tableData = JSON.parse(
       sessionStorage.getItem(localStorageKeys.DATA_TABLE)
@@ -46,7 +48,7 @@ function createTableDataRow(dataToRow){
   tableRow.appendChild(createCell(dataToRow.firstName));
   tableRow.appendChild(createCell(dataToRow.lastName));
   tableRow.appendChild(createCell(dataToRow.locationAddress.country));
-  tableRow.appendChild(createCell(timestampToDate(dataToRow.registerDate)));
+  tableRow.appendChild(createCell(timestampToFormattedDateString(dataToRow.registerDate)));
   return tableRow;
 }
 
@@ -131,7 +133,7 @@ function sortByDateDesc(a, b) {
   return b.registerDate - a.registerDate;
 }
 
-function timestampToDate(param) {
+function timestampToFormattedDateString(param) {
   const date = new Date(param);
   const year = date.getFullYear();
   let month = date.getMonth()+1;

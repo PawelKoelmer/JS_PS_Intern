@@ -3,10 +3,16 @@ const API_URL =
 const localStorageKeys = {
   USERS_TABLE: 'usersTable',
 };
+
+// TODO: remove
+const sessionStorageKeys = {
+  LATEST_USERS_TABLE: 'usersTable',
+};
+
 const classNames = {
   CONTAINER: 'container',
-  BUTTON: 'generate-button',
-  PERSON_DATA: 'person-data',
+  CREATE_PERSON_BUTTON: 'generate-button',
+  USER_CONTAINER: 'user',
   FIRST_NAME: 'firstName',
   LAST_NAME: 'lastName',
   NATIONALITY: 'nationality',
@@ -16,62 +22,75 @@ const classNames = {
   ICON_LIST: 'icons-list'
 };
 
-const fieldsTable = ['firstName','lastName','locationAddress','nationality','registerDate'];
-const listLabels = ['First Name', 'Last Name', 'Address', 'Nationality', 'Registration Date'];
+// const userSchema = {
+//   registerDate: {
+//     type: 'date',
+   
+//   }
+// };
 
 //INITIALIZE
 
-main();
+initialize();
 
-function main() {
-  appendElementToBody(createPersonContainer());
-  appendElement(createPersonDataBody(),classNames.CONTAINER);
-  appendElement(generateButton(),classNames.CONTAINER);
-  appendElementToBody(createLinkToTable());
-  
+function initialize() {
+  renderContainer();
+  renderNavigation();
 }
+
+
 
 //FETCH PERSON
 
-async function generatePerson() {
-  try {
-    const person = await fetchPerson();
-    addCreatedPersonToList(person);
-    appendPersonToBody(person);
-    createTextList();
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-async function fetchPerson() {
+async function fetchUser() {
   try {
     const person = await fetch(API_URL).then((res) => res.json());
-    return createPersonFromData(person.results[0]);
+    return createUser(person.results[0]);
   } catch (error) {
     console.log('Failed to receive API data');
   }
 }
 
-function createPersonFromData(person) {
+// EVENT HANDLERS
+
+async function handleCreateUserClick() {
+  try {
+    const user = await fetchUser();
+    saveUserToLocalStorage(user);
+    saveLatestUsersToSessionStorage(getLatestUsers()); // TODO: remove
+    renderUser(user);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function handleAddressToggleClick() {
+  getByClassName(classNames.ADDRESS).style.display = getByClassName(classNames.CHECKBOX).checked ? 'block' : 'none';
+}
+
+
+
+
+
+function createUser(data) {
   try {
     return {
-      firstName: person.name.first,
-      lastName: person.name.last,
-      registerDate: Date.parse(person.registered.date),
-      nationality: person.nat,
+      firstName: data.name.first,
+      lastName: data.name.last,
+      registerDate: Date.parse(data.registered.date),
+      nationality: data.nat,
       locationAddress: {
-        country: person.location.country,
-        city: person.location.city,
-        state: person.location.state,
-        postcode: person.location.postcode,
-        street: person.location.street.name,
-        houseNumber: person.location.street.number,
+        country: data.location.country,
+        city: data.location.city,
+        state: data.location.state,
+        postcode: data.location.postcode,
+        street: data.location.street.name,
+        houseNumber: data.location.street.number,
       },
       picture: {
-        large: person.picture.large,
-        medium: person.picture.medium,
-        thumbnail: person.picture.thumbnail,
+        large: data.picture.large,
+        medium: data.picture.medium,
+        thumbnail: data.picture.thumbnail,
       },
     };
   } catch (error) {
@@ -79,11 +98,11 @@ function createPersonFromData(person) {
   }
 }
 
-function addCreatedPersonToList(person) {
+function saveUserToLocalStorage(user) {
   try {
     localStorage.setItem(
       localStorageKeys.USERS_TABLE,
-      JSON.stringify([...readUsers(), person])
+      JSON.stringify([...readUsers(), user])
     );
   } catch (error) {
     console.log('Cannot add generated user to table');
@@ -94,165 +113,162 @@ function addCreatedPersonToList(person) {
 
 
 
+// RENDER
 
-//DISPLAY ELEMENTS
+function renderContainer() {
+  const container = createContainer();
+  document.body.appendChild(container);
+  container.appendChild(createUserButton());
+}
 
-function appendPersonToBody(createdPerson) {
-  try {
-    getByClassName(classNames.PERSON_DATA).remove();
-    appendElement(createPersonDataBody(),classNames.CONTAINER);
-    appendFieldsToPersonData(createdPerson);
-    appendElement(createAddressCheckBox(),classNames.PERSON_DATA);
-    appendElement(createLabelToCheckBox(),classNames.PERSON_DATA);
-  } catch (error) {
-    appendFieldsToPersonData(createdPerson);
-    appendElement(createAddressCheckBox(),classNames.PERSON_DATA);
-    appendElement(createLabelToCheckBox(),classNames.PERSON_DATA);
+function renderNavigation(){
+  document.body.appendChild(createUserListPageLink());  
+}
+
+function renderUserContainer() {
+  let container = getByClassName(classNames.USER_CONTAINER);
+  if (container) {
+    container.remove();
+  }
+  container = createUserContainer();
+  getByClassName(classNames.CONTAINER).appendChild(container);
+  return container;
+}
+
+function renderUser(user) {
+  const userContainer = renderUserContainer();
+  renderUserFields(user);
+  renderToggleUserAddressVisibilityCheckbox(userContainer); 
+}
+
+function renderToggleUserAddressVisibilityCheckbox(userContainer) {
+  userContainer.appendChild(createToggleUserAddressVisibilityCheckbox());
+  userContainer.appendChild(createToggleUserAddressVisibilityCheckboxLabel());
+}
+
+function renderUserFields(user) {
+  const userDataElem = getByClassName(classNames.USER_CONTAINER);
+  for (const key in user) {
+    if (!user.hasOwnProperty(key)) {
+      continue;
+    }
+    userDataElem.appendChild(createUserField({
+      className: key,
+      data: user[key]
+    }));
   }
 }
 
 
 
 
+// CREATE ELEMENTS
 
-//CREATE ELEMENTS
-
-function createPersonContainer() {
-  const personContainer = document.createElement('div');
-  personContainer.className = classNames.CONTAINER;
-  return personContainer;
+function createContainer() {
+  const container = document.createElement('div');
+  container.className = classNames.CONTAINER;
+  return container;
 }
 
-function createPersonDataBody() {
-  const personDataBody = document.createElement('div');
-  personDataBody.className = classNames.PERSON_DATA;
-  return personDataBody;
+function createUserContainer() {
+  const container = document.createElement('div');
+  container.className = classNames.USER_CONTAINER;
+  return container;
 }
 
-function createField(fieldClass, fieldText) {
+function createUserField({ className, data }) {
   const field = document.createElement('div');
-  field.className = fieldClass;
-  if(fieldClass === classNames.REGISTER_DATE){
-    field.innerHTML = timestampToDate(fieldText);
+  field.className = className;
+
+  if (className === classNames.REGISTER_DATE) {
+    field.innerText = timestampToFormattedDateString(data);
+  } 
+  else if (className === classNames.ADDRESS) {
+    createUserAddressFields(data).forEach((addressField) => field.appendChild(addressField));
   }
-  else if(fieldClass === classNames.ADDRESS){
-    let text = '';
-    Object.values(fieldText).forEach((element) => {text += `${element}<br>`;});
-    field.innerHTML = text;
-  }
-  else{
-    field.innerHTML = fieldText;
+  else {
+    field.innerText = data;
   }
   return field;
 }
 
-function createAddressCheckBox() {
+function createUserAddressFields(address) {
+  const fields = [];
+  for (const key in address) {
+    if (!address.hasOwnProperty(key)) {
+      continue;
+    }
+    const field = document.createElement('div');
+    field.className = key;
+    field.innerText = address[key];
+    fields.push(field);
+  }
+  return fields;
+}
+
+function createToggleUserAddressVisibilityCheckbox() {
   const checkBox = document.createElement('input');
   checkBox.id = 'check';
   checkBox.type = 'checkbox';
   checkBox.className = classNames.CHECKBOX;
-  checkBox.addEventListener('click', isAddressChecked);
   checkBox.checked = true;
+  checkBox.addEventListener('click', handleAddressToggleClick);
   return checkBox;
 }
 
-function createLabelToCheckBox() {
+function createToggleUserAddressVisibilityCheckboxLabel() {
   const label = document.createElement('label');
   label.htmlFor = 'check';
-  label.appendChild(document.createTextNode('Show/Hide Address'));
+  label.innerText = 'Show/Hide Address';
   return label;
 }
 
-function generateButton() {
+function createUserButton() {
   const button = document.createElement('button');
   button.type = 'button';
-  button.addEventListener('click', generatePerson);
-  button.textContent = 'Generate User';
-  button.className = classNames.BUTTON;
+  button.innerText = 'Generate User';
+  button.className = classNames.CREATE_PERSON_BUTTON;
+  button.addEventListener('click', handleCreateUserClick);
   return button;
 }
 
-function isAddressChecked() {
-  if(getByClassName(classNames.CHECKBOX).checked){
-    getByClassName(classNames.ADDRESS).style.display = 'block';
-    getByClassName(classNames.ICON_LIST).children[2].style.display = 'block';
-  } else{
-    getByClassName(classNames.ADDRESS).style.display = 'none';
-    getByClassName(classNames.ICON_LIST).children[2].style.display = 'none';
-  } 
-}
-
-function createTextList(){
-  appendElement(createTextListContainer(),classNames.CONTAINER);
-  listLabels.forEach((element) => {appendElement(createTextToList(element),classNames.ICON_LIST);});
-}
-
-function createTextListContainer() {
-  const ul = document.createElement('ul');
-  ul.className = 'icons-list';
-  return ul;
-}
-
-function createTextToList(fieldName){
-  const li = document.createElement('li');
-  li.innerHTML = fieldName;
-  return li;
-} 
-
-function createLinkToTable() {
+function createUserListPageLink() {
   const link = document.createElement('a');
-  const linkText = document.createTextNode('Show last 10 registered users');
-  link.appendChild(linkText);
-  link.addEventListener('click', openPage);
+  link.innerText = 'Show last 10 registered users';
   link.href = 'showRegisteredUsers.html';
   return link;
 }
 
-function saveTableToSession(tableToSession) {
+// TODO: remove
+function saveLatestUsersToSessionStorage(users) {
   try {
     sessionStorage.setItem(
-      localStorageKeys.USERS_TABLE,
-      JSON.stringify(tableToSession)
+      sessionStorageKeys.LATEST_USERS_TABLE,
+      JSON.stringify(users)
     );
   } catch (error) {
     console.log('Cannot stringify data to session');
   }
 }
 
-async function openPage() {
-  await sendTableToSession();
-}
 
-function sendTableToSession() {
-  const registeredUsers = readUsers();
-  return new Promise(function (resolve, reject) {
-    try {
-      if (registeredUsers.length > 10) {
-        saveTableToSession(registeredUsers.slice(registeredUsers.length - 10));
-      } else {
-        saveTableToSession(registeredUsers);
-      }
-    } catch (error) {
-      reject(console.log('Problems with sending data'));
-    }
-  });
-}
+
+
+
+// HELPERS
 
 function readUsers() {
   return readLocalStorageByKey(localStorageKeys.USERS_TABLE);
 }
 
-function appendFieldsToPersonData(createdPerson) {
-  for(const field in fieldsTable){
-    getByClassName(classNames.PERSON_DATA).appendChild(createField(fieldsTable[field],createdPerson[fieldsTable[field]]));
-  }
+// TODO: move to table.js and remove redundant session storage
+function getLatestUsers() {
+  const users = readUsers();
+  const latestUsersCount = 10;
+  return users.length > latestUsersCount
+    ? users.slice(users.length - latestUsersCount)
+    : users;
 }
-
-
-
-
-
-//HELPERS
 
 function readLocalStorageByKey(key) {
   try {
@@ -263,11 +279,10 @@ function readLocalStorageByKey(key) {
   }
 }
 
-function timestampToDate(timestamp) {
+//FIXME: poprawić
+function timestampToFormattedDateString(timestamp) {
   const date = new Date(timestamp);
-  return (
-    date.getDate() +
-    '/' +
+  return (`${date.getDate()}/` +
     (date.getMonth() + 1) +
     '/' +
     date.getFullYear() +
@@ -284,10 +299,3 @@ function getByClassName(param) {
   return document.querySelector(`.${param}`);
 }
 
-function appendElement(elem,className){
-  getByClassName(className).appendChild(elem);
-}
-
-function appendElementToBody(elem){
-  document.body.appendChild(elem);
-}
