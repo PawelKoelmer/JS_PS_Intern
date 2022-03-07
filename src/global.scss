@@ -1,0 +1,96 @@
+@import './variables.scss';
+
+body{
+  background-color: #e5e2e2;
+}
+
+.container{
+    font-family: Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    width: 50%;
+    align-items: center;
+  }
+
+.user > *{
+    padding: 0.3rem;
+    display: flex;
+    flex-flow: column nowrap;
+    text-align: center;
+    font-size: 2rem;
+  }
+
+.picture{
+  background-color: $primary-color;
+}
+
+.picture > img{
+  border-style: solid;
+  border-color: $light-primary-color;
+  border-radius: 50%;
+}
+
+.userName{
+  font-size: larger;
+  font-weight: 600;
+}
+
+
+
+.address-checkbox{
+  display: inline-flex;
+  block-size: auto;
+}
+
+.address-checkbox-label{
+  display: inline-flex;
+}
+
+.generate-button {
+  border-style: none;
+  color : white;
+  background-color: $dark-primary-color;
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: inherit;
+  margin: .5rem;
+  padding: .8rem;
+  box-sizing: content-box;
+  order:2;
+  }
+ 
+.users-table{
+  margin-left: auto;
+  margin-right: auto;
+  background-color: $divider-color;
+  border-spacing: 0;
+  text-align: center;
+  font-size: 2rem;
+
+} 
+
+.headers-row >th{
+  border-bottom: 0.15rem solid $secondary-text;
+  padding-right: 1rem;
+}
+
+.data-row >td{
+  border-bottom: 0.1rem solid $secondary-text;
+  padding-right: 1rem;
+}
+
+.link-to-table{
+  display:block;
+  text-align: center;
+  padding-top: 0.8rem;
+  font-size: 2rem;
+}
+
+.link-to-main{
+  display:block;
+  text-align: center;
+  padding-top: 0.8rem;
+  font-size: 2rem;
+}
